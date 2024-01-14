@@ -1,0 +1,77 @@
+import random
+import tkinter as tk
+from tkinter import messagebox
+
+class EinmaleinsGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Einmaleins Lernprogramm")
+        self.root.geometry("512x512")
+
+        self.malreihen = [(i, j) for i in range(1, 11) for j in range(1, 11)]
+        self.aktuelle_malreihe = random.choice(self.malreihen)
+
+        self.richtig_geloest = []
+        self.falsch_geloest = []
+
+        self.setup_gui()
+
+    def setup_gui(self):
+        self.label_frage = tk.Label(self.root, text=f"Berechne {self.aktuelle_malreihe[0]} * {self.aktuelle_malreihe[1]}:")
+        self.label_frage.pack(pady=10)
+
+        self.entry_antwort = tk.Entry(self.root)
+        self.entry_antwort.pack(pady=10)
+        self.entry_antwort.bind('<Return>', self.pruefe_antwort)
+
+        self.button_pruefen = tk.Button(self.root, text="Prüfen", command=self.pruefe_antwort)
+        self.button_pruefen.pack(pady=10)
+
+        self.label_feedback = tk.Label(self.root, text="")
+        self.label_feedback.pack(pady=10)
+
+    def pruefe_antwort(self, event=None):
+        try:
+            antwort = int(self.entry_antwort.get())
+        except ValueError:
+            self.label_feedback.config(text="Ungültige Eingabe. Bitte gib eine ganze Zahl ein.")
+            return
+
+        ergebnis = self.aktuelle_malreihe[0] * self.aktuelle_malreihe[1]
+
+        if antwort == ergebnis:
+            self.label_feedback.config(text="Richtig! Gut gemacht!")
+            self.richtig_geloest.append(self.aktuelle_malreihe)
+        else:
+            self.label_feedback.config(text=f"Falsch! Die richtige Antwort ist {ergebnis}.")
+            self.falsch_geloest.append((self.aktuelle_malreihe[0], self.aktuelle_malreihe[1], ergebnis))
+
+        self.aktualisiere_frage()
+
+    def aktualisiere_frage(self):
+        if self.malreihen:
+            self.aktuelle_malreihe = random.choice(self.malreihen)
+            self.label_frage.config(text=f"Berechne {self.aktuelle_malreihe[0]} * {self.aktuelle_malreihe[1]}:")
+            self.label_feedback.config(text="")
+            self.entry_antwort.delete(0, tk.END)  # Lösche den Text erst nach der Aktualisierung der Frage
+        else:
+            self.zeige_ergebnis()
+
+    def zeige_ergebnis(self):
+        gesamt = len(self.richtig_geloest) + len(self.falsch_geloest)
+        prozent_richtig = (len(self.richtig_geloest) / gesamt) * 100
+
+        ergebnis_text = f"Du hast {prozent_richtig:.2f}% der Aufgaben richtig gelöst."
+        if self.falsch_geloest:
+            ergebnis_text += "\nFalsch gelöste Aufgaben:"
+            for aufgabe in self.falsch_geloest:
+                ergebnis_text += f"\n{aufgabe[0]} * {aufgabe[1]} = {aufgabe[2]}"
+
+        self.label_frage.config(text=ergebnis_text)
+        self.entry_antwort.destroy()
+        self.button_pruefen.destroy()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = EinmaleinsGUI(root)
+    root.mainloop()
